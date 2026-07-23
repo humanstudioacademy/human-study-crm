@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 export type NavLink = {
   href: string;
   label: string;
+  icon: React.ReactNode;
 };
 
 export function NavLinks({
@@ -19,7 +20,7 @@ export function NavLinks({
   const pathname = usePathname();
 
   return (
-    <nav className={cn("flex flex-col gap-1", className)}>
+    <nav className={cn("flex flex-col gap-0.5", className)}>
       {links.map((link) => {
         const isActive =
           link.href === "/"
@@ -30,12 +31,13 @@ export function NavLinks({
             key={link.href}
             href={link.href}
             className={cn(
-              "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               isActive
-                ? "bg-secondary text-secondary-foreground"
+                ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
             )}
           >
+            {link.icon}
             {link.label}
           </Link>
         );

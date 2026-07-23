@@ -27,6 +27,9 @@ export default async function NegocioDetailPage({
     { data: historico },
     { data: negocioOfertas },
     { data: ofertasDisponiveis },
+    { data: insight },
+    { data: eventos },
+    { data: submissao },
   ] = await Promise.all([
     supabase
       .from("negocios")
@@ -48,6 +51,23 @@ export default async function NegocioDetailPage({
       .select("id, nome, preco_atual, produto:produtos(nome)")
       .eq("is_active", true)
       .order("nome"),
+    supabase
+      .from("negocio_insights")
+      .select("*")
+      .eq("negocio_id", negocioId)
+      .order("gerado_em", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("eventos")
+      .select("*, owner:profiles(full_name)")
+      .eq("negocio_id", negocioId)
+      .order("inicio", { ascending: true }),
+    supabase
+      .from("formulario_submissoes")
+      .select("dados, formulario:formularios(nome, campos:formulario_campos(chave, rotulo))")
+      .eq("negocio_id", negocioId)
+      .maybeSingle(),
   ]);
 
   return (
@@ -57,6 +77,9 @@ export default async function NegocioDetailPage({
       historico={historico ?? []}
       negocioOfertas={negocioOfertas ?? []}
       ofertasDisponiveis={ofertasDisponiveis ?? []}
+      insight={insight}
+      eventos={eventos ?? []}
+      submissao={submissao}
     />
   );
 }

@@ -39,6 +39,123 @@ export type Database = {
   }
   public: {
     Tables: {
+      cliente_enderecos: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          cliente_id: string
+          complemento: string | null
+          created_at: string
+          estado: string | null
+          id: string
+          label: string | null
+          logradouro: string | null
+          numero: string | null
+          principal: boolean
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cliente_id: string
+          complemento?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: string
+          label?: string | null
+          logradouro?: string | null
+          numero?: string | null
+          principal?: boolean
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cliente_id?: string
+          complemento?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: string
+          label?: string | null
+          logradouro?: string | null
+          numero?: string | null
+          principal?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_enderecos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_insights: {
+        Row: {
+          analise: string
+          cliente_id: string
+          gerado_em: string
+          id: string
+        }
+        Insert: {
+          analise: string
+          cliente_id: string
+          gerado_em?: string
+          id?: string
+        }
+        Update: {
+          analise?: string
+          cliente_id?: string
+          gerado_em?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_insights_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_telefones: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          numero: string
+          principal: boolean
+          tipo: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          numero: string
+          principal?: boolean
+          tipo?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          numero?: string
+          principal?: boolean
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_telefones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           cargo: string | null
@@ -86,6 +203,42 @@ export type Database = {
           },
         ]
       }
+      etapa_transicoes: {
+        Row: {
+          created_at: string
+          etapa_destino_id: string
+          etapa_origem_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          etapa_destino_id: string
+          etapa_origem_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          etapa_destino_id?: string
+          etapa_origem_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "etapa_transicoes_etapa_destino_id_fkey"
+            columns: ["etapa_destino_id"]
+            isOneToOne: false
+            referencedRelation: "etapas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "etapa_transicoes_etapa_origem_id_fkey"
+            columns: ["etapa_origem_id"]
+            isOneToOne: false
+            referencedRelation: "etapas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       etapas: {
         Row: {
           created_at: string
@@ -123,6 +276,259 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "etapas_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eventos: {
+        Row: {
+          concluido: boolean
+          created_at: string
+          descricao: string | null
+          fim: string | null
+          id: string
+          inicio: string
+          negocio_id: string | null
+          owner_id: string
+          tipo: Database["public"]["Enums"]["evento_tipo"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          concluido?: boolean
+          created_at?: string
+          descricao?: string | null
+          fim?: string | null
+          id?: string
+          inicio: string
+          negocio_id?: string | null
+          owner_id: string
+          tipo?: Database["public"]["Enums"]["evento_tipo"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          concluido?: boolean
+          created_at?: string
+          descricao?: string | null
+          fim?: string | null
+          id?: string
+          inicio?: string
+          negocio_id?: string | null
+          owner_id?: string
+          tipo?: Database["public"]["Enums"]["evento_tipo"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "v_negocio_tempo_parado"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formulario_campos: {
+        Row: {
+          chave: string
+          created_at: string
+          formulario_id: string
+          id: string
+          mapeia_para: string | null
+          obrigatorio: boolean
+          opcoes: Json | null
+          posicao: number
+          rotulo: string
+          tipo: Database["public"]["Enums"]["campo_tipo"]
+        }
+        Insert: {
+          chave: string
+          created_at?: string
+          formulario_id: string
+          id?: string
+          mapeia_para?: string | null
+          obrigatorio?: boolean
+          opcoes?: Json | null
+          posicao?: number
+          rotulo: string
+          tipo?: Database["public"]["Enums"]["campo_tipo"]
+        }
+        Update: {
+          chave?: string
+          created_at?: string
+          formulario_id?: string
+          id?: string
+          mapeia_para?: string | null
+          obrigatorio?: boolean
+          opcoes?: Json | null
+          posicao?: number
+          rotulo?: string
+          tipo?: Database["public"]["Enums"]["campo_tipo"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formulario_campos_formulario_id_fkey"
+            columns: ["formulario_id"]
+            isOneToOne: false
+            referencedRelation: "formularios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formulario_submissoes: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          dados: Json
+          formulario_id: string
+          id: string
+          negocio_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          dados: Json
+          formulario_id: string
+          id?: string
+          negocio_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          dados?: Json
+          formulario_id?: string
+          id?: string
+          negocio_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formulario_submissoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formulario_submissoes_formulario_id_fkey"
+            columns: ["formulario_id"]
+            isOneToOne: false
+            referencedRelation: "formularios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formulario_submissoes_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formulario_submissoes_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "v_negocio_tempo_parado"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formularios: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          etapa_id: string
+          id: string
+          nome: string
+          owner_padrao_id: string
+          pipeline_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          etapa_id: string
+          id?: string
+          nome: string
+          owner_padrao_id: string
+          pipeline_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          etapa_id?: string
+          id?: string
+          nome?: string
+          owner_padrao_id?: string
+          pipeline_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formularios_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formularios_etapa_id_fkey"
+            columns: ["etapa_id"]
+            isOneToOne: false
+            referencedRelation: "etapas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formularios_owner_padrao_id_fkey"
+            columns: ["owner_padrao_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formularios_pipeline_id_fkey"
             columns: ["pipeline_id"]
             isOneToOne: false
             referencedRelation: "pipelines"
@@ -178,6 +584,51 @@ export type Database = {
           },
           {
             foreignKeyName: "negocio_historico_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "v_negocio_tempo_parado"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      negocio_insights: {
+        Row: {
+          gerado_em: string
+          id: string
+          negocio_id: string
+          pontos_atencao: string | null
+          proxima_acao_sugerida: string | null
+          resumo: string
+          sentimento: string | null
+        }
+        Insert: {
+          gerado_em?: string
+          id?: string
+          negocio_id: string
+          pontos_atencao?: string | null
+          proxima_acao_sugerida?: string | null
+          resumo: string
+          sentimento?: string | null
+        }
+        Update: {
+          gerado_em?: string
+          id?: string
+          negocio_id?: string
+          pontos_atencao?: string | null
+          proxima_acao_sugerida?: string | null
+          resumo?: string
+          sentimento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negocio_insights_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "negocio_insights_negocio_id_fkey"
             columns: ["negocio_id"]
             isOneToOne: false
             referencedRelation: "v_negocio_tempo_parado"
@@ -255,6 +706,7 @@ export type Database = {
           utm_source: string | null
           utm_term: string | null
           valor: number
+          valor_manual: number
         }
         Insert: {
           cliente_id: string
@@ -276,6 +728,7 @@ export type Database = {
           utm_source?: string | null
           utm_term?: string | null
           valor?: number
+          valor_manual?: number
         }
         Update: {
           cliente_id?: string
@@ -297,6 +750,7 @@ export type Database = {
           utm_source?: string | null
           utm_term?: string | null
           valor?: number
+          valor_manual?: number
         }
         Relationships: [
           {
@@ -500,6 +954,64 @@ export type Database = {
         }
         Relationships: []
       }
+      tarefas: {
+        Row: {
+          concluida: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          negocio_id: string | null
+          owner_id: string
+          prazo: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          concluida?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          negocio_id?: string | null
+          owner_id: string
+          prazo?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          concluida?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          negocio_id?: string | null
+          owner_id?: string
+          prazo?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "v_negocio_tempo_parado"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_negocio_tempo_parado: {
@@ -645,6 +1157,10 @@ export type Database = {
       }
       is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      recalc_negocio_valor: {
+        Args: { p_negocio_id: string }
+        Returns: undefined
+      }
       set_oferta_preco: {
         Args: { p_novo_preco: number; p_oferta_id: string }
         Returns: undefined
@@ -653,7 +1169,15 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
+      campo_tipo:
+        | "texto"
+        | "email"
+        | "telefone"
+        | "numero"
+        | "select"
+        | "textarea"
       deal_status: "open" | "won" | "lost"
+      evento_tipo: "reuniao" | "ligacao" | "outro" | "email" | "visita"
       historico_tipo:
         | "criado"
         | "etapa_alterada"
@@ -793,7 +1317,16 @@ export const Constants = {
   },
   public: {
     Enums: {
+      campo_tipo: [
+        "texto",
+        "email",
+        "telefone",
+        "numero",
+        "select",
+        "textarea",
+      ],
       deal_status: ["open", "won", "lost"],
+      evento_tipo: ["reuniao", "ligacao", "outro", "email", "visita"],
       historico_tipo: [
         "criado",
         "etapa_alterada",

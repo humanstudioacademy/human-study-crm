@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/getSession";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { generateNegocioInsight } from "@/lib/ai/insights";
 import type { ActionState } from "@/lib/actions/pipelines.actions";
 
 const negocioSchema = z.object({
@@ -40,16 +42,22 @@ export async function createNegocio(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("negocios").insert({
-    ...parsed.data,
-    pipeline_id: pipelineId,
-    owner_id: user.id,
-    created_by: user.id,
-  });
+  const { data, error } = await supabase
+    .from("negocios")
+    .insert({
+      ...parsed.data,
+      valor_manual: parsed.data.valor,
+      pipeline_id: pipelineId,
+      owner_id: user.id,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (error) return { error: "Não foi possível criar o negócio." };
+  if (error || !data) return { error: "Não foi possível criar o negócio." };
 
   revalidatePath(`/kanban/${pipelineId}`);
+  after(() => generateNegocioInsight(data.id));
   return { success: true };
 }
 
@@ -78,9 +86,15 @@ export async function moveNegocioEtapa(
     .update({ etapa_id: novaEtapaId, status })
     .eq("id", negocioId);
 
-  if (error) return { error: "Não foi possível mover o negócio." };
+  if (error) {
+    if (error.message?.includes("Transição de etapa não permitida")) {
+      return { error: error.message };
+    }
+    return { error: "Não foi possível mover o negócio." };
+  }
 
   revalidatePath(`/kanban/${pipelineId}`);
+  after(() => generateNegocioInsight(negocioId));
   return { success: true };
 }
 
@@ -115,15 +129,17 @@ export async function updateNegocio(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
 
+  const { valor, ...rest } = parsed.data;
   const supabase = await createClient();
   const { error } = await supabase
     .from("negocios")
-    .update(parsed.data)
+    .update({ ...rest, valor_manual: valor })
     .eq("id", negocioId);
 
   if (error) return { error: "Não foi possível atualizar o negócio." };
 
   revalidatePath(`/negocios/${negocioId}`);
+  after(() => generateNegocioInsight(negocioId));
   return { success: true };
 }
 
@@ -162,6 +178,7 @@ export async function addNota(
   if (error) return { error: "Não foi possível salvar a nota." };
 
   revalidatePath(`/negocios/${negocioId}`);
+  after(() => generateNegocioInsight(negocioId));
   return { success: true };
 }
 

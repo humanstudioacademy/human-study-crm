@@ -170,6 +170,40 @@ export async function deleteEtapa(etapaId: string, pipelineId: string) {
   return { success: true };
 }
 
+export async function updateEtapaTransicoes(
+  etapaId: string,
+  pipelineId: string,
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const destinos = formData.getAll("destino").map(String);
+
+  const { error: deleteError } = await supabase
+    .from("etapa_transicoes")
+    .delete()
+    .eq("etapa_origem_id", etapaId);
+  if (deleteError) {
+    return { error: "Não foi possível atualizar as transições." };
+  }
+
+  if (destinos.length > 0) {
+    const { error: insertError } = await supabase.from("etapa_transicoes").insert(
+      destinos.map((destinoId) => ({
+        etapa_origem_id: etapaId,
+        etapa_destino_id: destinoId,
+      }))
+    );
+    if (insertError) {
+      return { error: "Não foi possível atualizar as transições." };
+    }
+  }
+
+  revalidatePath(`/admin/pipelines/${pipelineId}`);
+  return { success: true };
+}
+
 export async function reorderEtapas(
   pipelineId: string,
   orderedIds: string[]

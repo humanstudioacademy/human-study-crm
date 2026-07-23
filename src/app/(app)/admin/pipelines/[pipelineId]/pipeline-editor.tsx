@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ import {
   renamePipeline,
   reorderEtapas,
   updateEtapa,
+  updateEtapaTransicoes,
   type ActionState,
 } from "@/lib/actions/pipelines.actions";
 import { useCloseOnSuccess } from "@/hooks/use-close-on-success";
@@ -47,9 +49,11 @@ type Etapa = Tables<"etapas">;
 export function PipelineEditor({
   pipeline,
   etapas,
+  transicoes,
 }: {
   pipeline: Pipeline;
   etapas: Etapa[];
+  transicoes: Record<string, string[]>;
 }) {
   const [renameState, renameAction, renamePending] = useActionState<
     ActionState,
@@ -114,7 +118,7 @@ export function PipelineEditor({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-medium">Etapas</h2>
-          <EtapaFormDialog pipelineId={pipeline.id} />
+          <EtapaFormDialog pipelineId={pipeline.id} allEtapas={items} />
         </div>
 
         <DndContext
@@ -128,7 +132,13 @@ export function PipelineEditor({
           >
             <ul className="space-y-2">
               {items.map((etapa) => (
-                <EtapaRow key={etapa.id} etapa={etapa} pipelineId={pipeline.id} />
+                <EtapaRow
+                  key={etapa.id}
+                  etapa={etapa}
+                  pipelineId={pipeline.id}
+                  allEtapas={items}
+                  transicoesPermitidas={transicoes[etapa.id] ?? []}
+                />
               ))}
             </ul>
           </SortableContext>
@@ -147,9 +157,13 @@ export function PipelineEditor({
 function EtapaRow({
   etapa,
   pipelineId,
+  allEtapas,
+  transicoesPermitidas,
 }: {
   etapa: Etapa;
   pipelineId: string;
+  allEtapas: Etapa[];
+  transicoesPermitidas: string[];
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: etapa.id });
@@ -181,13 +195,23 @@ function EtapaRow({
       </button>
       <div className="flex-1">
         <p className="font-medium">{etapa.nome}</p>
-        <div className="flex gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span>{etapa.probabilidade_conversao}% de conversão</span>
           {etapa.is_won_stage && <Badge variant="secondary">Ganho</Badge>}
           {etapa.is_lost_stage && <Badge variant="secondary">Perdido</Badge>}
+          {transicoesPermitidas.length > 0 && (
+            <Badge variant="outline">
+              Só vai para {transicoesPermitidas.length} etapa(s)
+            </Badge>
+          )}
         </div>
       </div>
-      <EtapaFormDialog pipelineId={pipelineId} etapa={etapa} />
+      <EtapaFormDialog
+        pipelineId={pipelineId}
+        etapa={etapa}
+        allEtapas={allEtapas}
+        transicoesPermitidas={transicoesPermitidas}
+      />
       <Button variant="ghost" size="icon" onClick={handleDelete}>
         <Trash2 className="size-4 text-destructive" />
       </Button>
@@ -198,9 +222,13 @@ function EtapaRow({
 function EtapaFormDialog({
   pipelineId,
   etapa,
+  allEtapas = [],
+  transicoesPermitidas = [],
 }: {
   pipelineId: string;
   etapa?: Etapa;
+  allEtapas?: Etapa[];
+  transicoesPermitidas?: string[];
 }) {
   const [open, setOpen] = useState(false);
   const action = etapa
@@ -211,7 +239,19 @@ function EtapaFormDialog({
     undefined
   );
 
+  const [transicoesState, transicoesAction, transicoesPending] = useActionState<
+    ActionState,
+    FormData
+  >(
+    etapa
+      ? updateEtapaTransicoes.bind(null, etapa.id, pipelineId)
+      : async (_state: ActionState, _formData: FormData) => undefined,
+    undefined
+  );
+
   useCloseOnSuccess(state, () => setOpen(false));
+
+  const outrasEtapas = allEtapas.filter((e) => e.id !== etapa?.id);
 
   return (
     <Dialog
@@ -282,6 +322,49 @@ function EtapaFormDialog({
             </Button>
           </DialogFooter>
         </form>
+
+        {etapa && outrasEtapas.length > 0 && (
+          <>
+            <Separator />
+            <form action={transicoesAction} className="space-y-3">
+              <div>
+                <Label>Para quais etapas esta pode ir?</Label>
+                <p className="text-xs text-muted-foreground">
+                  Deixe tudo desmarcado para permitir ir para qualquer etapa.
+                </p>
+              </div>
+              <div className="grid max-h-40 grid-cols-1 gap-1.5 overflow-y-auto">
+                {outrasEtapas.map((e) => (
+                  <label
+                    key={e.id}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      name="destino"
+                      value={e.id}
+                      defaultChecked={transicoesPermitidas.includes(e.id)}
+                    />
+                    {e.nome}
+                  </label>
+                ))}
+              </div>
+              {transicoesState?.error && (
+                <p className="text-sm text-destructive">
+                  {transicoesState.error}
+                </p>
+              )}
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                disabled={transicoesPending}
+              >
+                {transicoesPending ? "Salvando..." : "Salvar transições"}
+              </Button>
+            </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

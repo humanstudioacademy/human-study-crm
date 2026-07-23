@@ -31,9 +31,11 @@ function formatDate(date: string) {
 export function HistoricoSection({
   negocioId,
   historico,
+  onNotaAdded,
 }: {
   negocioId: string;
   historico: HistoricoItem[];
+  onNotaAdded?: () => void;
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     addNota.bind(null, negocioId),
@@ -42,7 +44,11 @@ export function HistoricoSection({
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state?.success) formRef.current?.reset();
+    if (state?.success) {
+      formRef.current?.reset();
+      onNotaAdded?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onNotaAdded é recriado a cada render; reagimos só a `state`
   }, [state]);
 
   return (

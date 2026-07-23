@@ -21,6 +21,8 @@ export function KanbanBoardLoader(props: {
   etapas: KanbanEtapa[];
   negocios: KanbanNegocio[];
   clientes: { id: string; nome: string }[];
+  transicoes: Record<string, string[]>;
+  isAdmin: boolean;
 }) {
   return <KanbanBoard {...props} />;
 }

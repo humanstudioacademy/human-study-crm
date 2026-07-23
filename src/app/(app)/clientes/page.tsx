@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { Search, Mail, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -10,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { whatsappLink, mailtoLink } from "@/lib/utils/contact-links";
 
 export default async function ClientesPage({
   searchParams,
@@ -21,7 +25,7 @@ export default async function ClientesPage({
 
   let query = supabase
     .from("clientes")
-    .select("id, nome, email, telefone, empresa")
+    .select("id, nome, email, telefone, empresa, negocios(count)")
     .order("nome");
 
   if (q) query = query.ilike("nome", `%${q}%`);
@@ -42,12 +46,14 @@ export default async function ClientesPage({
         </Button>
       </div>
 
-      <form className="max-w-sm">
+      <form className="relative max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           name="q"
           defaultValue={q}
           placeholder="Buscar por nome..."
           type="search"
+          className="pl-8"
         />
       </form>
 
@@ -56,15 +62,20 @@ export default async function ClientesPage({
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Empresa</TableHead>
-            <TableHead>E-mail</TableHead>
-            <TableHead>Telefone</TableHead>
+            <TableHead>Contato</TableHead>
+            <TableHead>Negócios</TableHead>
+            <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {clientes?.map((cliente) => (
-            <TableRow key={cliente.id} className="cursor-pointer">
+            <TableRow key={cliente.id}>
               <TableCell className="font-medium">
-                <Link href={`/clientes/${cliente.id}`} className="block">
+                <Link
+                  href={`/clientes/${cliente.id}`}
+                  className="flex items-center gap-2"
+                >
+                  <UserAvatar name={cliente.nome} size="sm" />
                   {cliente.nome}
                 </Link>
               </TableCell>
@@ -72,10 +83,43 @@ export default async function ClientesPage({
                 {cliente.empresa ?? "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {cliente.email ?? "—"}
+                <div className="flex flex-col text-xs">
+                  <span>{cliente.email ?? "—"}</span>
+                  <span>{cliente.telefone ?? "—"}</span>
+                </div>
               </TableCell>
-              <TableCell className="text-muted-foreground">
-                {cliente.telefone ?? "—"}
+              <TableCell>
+                <Badge variant="secondary">
+                  {cliente.negocios?.[0]?.count ?? 0}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center justify-end gap-1">
+                  {cliente.telefone && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      render={
+                        <a
+                          href={whatsappLink(cliente.telefone)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      }
+                    >
+                      <MessageCircle className="size-3.5 text-success" />
+                    </Button>
+                  )}
+                  {cliente.email && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      render={<a href={mailtoLink(cliente.email)} />}
+                    >
+                      <Mail className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
